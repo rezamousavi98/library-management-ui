@@ -3,9 +3,11 @@ import {
     CardHeader,
     CardBody,
     Typography,
+    Button
   } from "@material-tailwind/react";
-  import PropTypes from "prop-types";
-  import { datePipe } from '@/utils';
+import { PlusIcon } from "@heroicons/react/24/outline";
+import PropTypes from "prop-types";
+import { datePipe } from '@/utils';
 import { Pagination } from "@/widgets/tables";
 import { Spinner } from '@/widgets/spinners';
 
@@ -19,14 +21,31 @@ export const Tables = ({
   count,
   pageSize,
   currentPage,
-  loading
+  loading,
+  onAddRow
 }) => {
   return (
     <Card>
       <CardHeader variant="gradient" color="blue" className="mb-8 p-6">
-        <Typography variant="h6" color="white">
+        <Typography variant="h6" color="white" className="inline-block align-sub">
           {title}
         </Typography>
+        {onAddRow && (
+          <Button
+            variant="filled"
+            color="white"
+            size="sm"
+            className="float-right flex items-center bg-white focus:opacity-100"
+            onClick={onAddRow}
+          >
+            <PlusIcon
+              color="#1e88e5"
+              strokeWidth={2}
+              className="mr-1 h-4 w-4"
+            />
+            Add
+          </Button>
+        )}
       </CardHeader>
       <CardBody className="overflow-x-auto px-0 pt-0 pb-2">
         {!loading ? (
@@ -70,7 +89,9 @@ export const Tables = ({
                 return (
                   <tr key={row.id}>
                     <td className={className}>
-                      {hasPaging ? (currentPage - 1) * pageSize + key + 1 : key + 1}
+                      {hasPaging
+                        ? (currentPage - 1) * pageSize + key + 1
+                        : key + 1}
                     </td>
                     {columns.map((column) => (
                       <td key={row.id + column.name} className={className}>
@@ -136,6 +157,7 @@ Tables.prototype = {
     currentPage: PropTypes.number,
     onPageChange: PropTypes.func,
     loading: PropTypes.bool,
+    onAddRow: PropTypes.func
 }
 
 export default Tables;
