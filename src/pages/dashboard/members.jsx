@@ -8,7 +8,7 @@ export const Members = () => {
     const [error, setError] = useState(false);
     const [count, setCount] = useState(0);
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
+    const pageSize = 5;
     
     const tableColumns = [
         { type: "text", name: "fullName", label: "Full Name" },
@@ -24,7 +24,7 @@ export const Members = () => {
           setMembers(membersFromApi);
         };
         getMembers();
-      }, [page, pageSize]); //eslint-disable-line react-hooks/exhaustive-deps
+      }, [page]); //eslint-disable-line react-hooks/exhaustive-deps
 
     // const addProduct = async (product) => {
     //     setAddIsPending(true);
@@ -131,7 +131,7 @@ export const Members = () => {
           count={count}
           onPageChange={onPageChange}
           pageSize={pageSize}
-          offsetCount={(page - 1) * pageSize}
+          currentPage={page}
           loading={isPending}
         />
       </div>

@@ -3,10 +3,9 @@ import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import PropTypes from "prop-types";
 
-export const Pagination = ({count, onPageChange, pageSize}) => {
-  const [active, setActive] = useState(1);
+export const Pagination = ({count, onPageChange, pageSize, currentPage}) => {
+  const [active, setActive] = useState(currentPage ?? 1);
   const pagesCount = Math.ceil(count / pageSize);
-  // TODO: fix active page updating
   const updatePage = (page) => {
     if (page === active) return;
     setActive(page);
@@ -61,6 +60,7 @@ export const Pagination = ({count, onPageChange, pageSize}) => {
 };
 
 Pagination.prototype = {
+    currentPage: PropTypes.number,
     count: PropTypes.number,
     onPageChange: PropTypes.object,
     pageSize: PropTypes.number

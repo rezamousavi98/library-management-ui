@@ -18,7 +18,7 @@ export const Tables = ({
   onPageChange,
   count,
   pageSize,
-  offsetCount,
+  currentPage,
   loading
 }) => {
   return (
@@ -70,7 +70,7 @@ export const Tables = ({
                 return (
                   <tr key={row.id}>
                     <td className={className}>
-                      {hasPaging ? offsetCount + key + 1 : key + 1}
+                      {hasPaging ? (currentPage - 1) * pageSize + key + 1 : key + 1}
                     </td>
                     {columns.map((column) => (
                       <td key={row.id + column.name} className={className}>
@@ -110,11 +110,12 @@ export const Tables = ({
         )}
       </CardBody>
       {hasPaging && !loading ? (
-        <div className="table-footer px-3 py-2">
+        <div className="table-footer px-4 py-2">
           <Pagination
             count={count}
             onPageChange={onPageChange}
             pageSize={pageSize}
+            currentPage={currentPage}
           />
         </div>
       ) : (
@@ -132,7 +133,7 @@ Tables.prototype = {
     count: PropTypes.number,
     hasPaging: PropTypes.bool,
     pageSize: PropTypes.number,
-    offsetCount: PropTypes.number,
+    currentPage: PropTypes.number,
     onPageChange: PropTypes.func,
     loading: PropTypes.bool,
 }
