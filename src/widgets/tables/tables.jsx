@@ -3,7 +3,11 @@ import {
     CardHeader,
     CardBody,
     Typography,
-    Button
+    Button,
+    IconButton,
+    Popover,
+    PopoverHandler,
+    PopoverContent,
   } from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import PropTypes from "prop-types";
@@ -22,7 +26,9 @@ export const Tables = ({
   pageSize,
   currentPage,
   loading,
-  onAddRow
+  onAddRow,
+  onEditRow,
+  onDeleteRow
 }) => {
   return (
     <Card>
@@ -107,14 +113,34 @@ export const Tables = ({
                       </td>
                     ))}
                     {actions.length ? (
-                      <td className={className}>
-                        <Typography
-                          as="a"
-                          href="#"
-                          className="text-xs font-semibold text-blue-gray-600"
-                        >
-                          Edit
-                        </Typography>
+                      <td className="inline-flex border-b border-blue-gray-50 py-2 px-5" style={{width: '100%'}}>
+                        {actions.includes("edit") && (
+                          <IconButton variant="outlined" size="sm" className="m-1" onClick={() => onEditRow(row)}>
+                          <i className="fas fa-pen" />
+                        </IconButton>
+                        )}
+                        {actions.includes("delete") && (
+                          <Popover placement="left-start" dismiss={{enabled: true, escapeKey: true}}>
+                          <PopoverHandler>
+                            <IconButton variant="outlined" size="sm" className="m-1" color="red">
+                            <i className="fas fa-trash" />
+                          </IconButton>
+                          </PopoverHandler>
+                          <PopoverContent className="w-60">
+                            <Typography
+                              variant="h6"
+                              color="blue-gray"
+                              className="mb-3"
+                            >
+                              Are you sure?
+                            </Typography>
+                            <div className="flex justify-end gap-2">
+                              <Button variant="text" size="sm" onClick={() => onDeleteRow(row)} >{`Yes, delete this item`}</Button>
+                              {/* <Button variant="text" size="sm" onClick={(e) => console.log(e)}>Cancel</Button> */}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        )}
                       </td>
                     ) : (
                       <></>
@@ -157,7 +183,9 @@ Tables.prototype = {
     currentPage: PropTypes.number,
     onPageChange: PropTypes.func,
     loading: PropTypes.bool,
-    onAddRow: PropTypes.func
+    onAddRow: PropTypes.func,
+    onEditRow: PropTypes.func,
+    onDeleteRow: PropTypes.func
 }
 
 export default Tables;

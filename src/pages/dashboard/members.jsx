@@ -12,13 +12,15 @@ import {
 import { appConfig } from "@/configs";
 import { Tables } from "@/widgets/tables";
 export const Members = () => {
+  // TODO: make add modal responsive, edit member and renewal
   const apiUrl = appConfig.baseApiUrl + "members/";
-  const pageSize = 10;
+  const pageSize = 5;
   const [members, setMembers] = useState([]);
   const [isPending, setIsPending] = useState(true);
   const [error, setError] = useState(false);
   const [count, setCount] = useState(0);
   const [page, setPage] = useState(1);
+  const [refreshList, setRefreshList] = useState(false);
   const [fullName, setFullName] = useState("");
   const [nationalCode, setNationalCode] = useState("");
   const [mobile, setMobile] = useState("");
@@ -42,7 +44,7 @@ export const Members = () => {
       setMembers(membersFromApi);
     };
     getMembers();
-  }, [page]); //eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, refreshList]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const addMember = async (member) => {
     setAddMemberLoading(true);
@@ -96,41 +98,24 @@ export const Members = () => {
     }
   };
 
-  //   const deleteProduct = async (id) => {
-  //     await fetch(`${apiUrl}/${id}`, {
-  //         method: "DELETE",
-  //         headers: {
-  //           "Authorization": "Bearer " + token
-  //         }
-  //       });
-  //       const leftProducts = products.filter((item) => item._id !== id);
-  //       setProducts(leftProducts);
-  //       if (leftProducts.length === 0) {
-  //         if (page > 1) {
-  //           setPage(page - 1);
-  //           setPageSize(pageSize);
-  //         }
-  //         setCount(count > 0 ? count - 1 : 0);
-  //       } else {
-  //         setPage(page);
-  //         setPageSize(pageSize);
-  //         setCount(count > 0 ? count - 1 : 0)
-  //       }
-  //   }
-
-  //   const onDelete = (id) => {
-  //     const confirmed = window.confirm("آیا اطمینان دارید؟");
-  //     if (confirmed) {
-  //       deleteProduct(id);
-  //     } else {
-  //       return;
-  //     }
-  //   };
-
-  //   const changePage = (page, pageSize)  => {
-  //     setPage(page);
-  //     setPageSize(pageSize);
-  //   }
+    const deleteMember = async (id) => {
+      await fetch(`${apiUrl}${id}`, {
+          method: "DELETE",
+        });
+        const leftMembers = members.filter((item) => item.nationalCode !== id);
+        setMembers(leftMembers);
+        // Fix update page
+        if (leftMembers.length === 0) {
+          if (page > 1) {
+            setPage(page - 1);
+          }
+          setCount(count > 0 ? count - 1 : 0);
+        } else {
+          setPage(page);
+          setRefreshList(true);
+          setCount(count > 0 ? count - 1 : 0)
+        }
+    }
 
   const onAddMember = () => {
     if (!fullName || !nationalCode || !mobile || !address) {
@@ -145,6 +130,15 @@ export const Members = () => {
     };
     addMember(member);
   };
+
+  const onEditMember = (row) => {
+    console.log(row);
+  }
+
+  const onDeleteMember = (row) => {
+    deleteMember(row.nationalCode);
+  }
+
   const onPageChange = (page) => {
     setPage(page);
   };
@@ -155,7 +149,7 @@ export const Members = () => {
         title="Members"
         data={members}
         columns={tableColumns}
-        actions={[]}
+        actions={['edit', 'delete']}
         hasPaging={true}
         count={count}
         onPageChange={onPageChange}
@@ -163,6 +157,8 @@ export const Members = () => {
         currentPage={page}
         loading={isPending}
         onAddRow={handleOpen}
+        onEditRow={onEditMember}
+        onDeleteRow={onDeleteMember}
       />
       <Dialog
         size="xs"
