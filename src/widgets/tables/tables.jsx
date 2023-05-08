@@ -41,8 +41,9 @@ export const Tables = ({
             variant="filled"
             color="white"
             size="sm"
+            title="Create new member"
             className="float-right flex items-center bg-white focus:opacity-100"
-            onClick={onAddRow}
+            onClick={() => onAddRow()}
           >
             <PlusIcon
               color="#1e88e5"
