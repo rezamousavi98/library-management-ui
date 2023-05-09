@@ -28,7 +28,8 @@ export const Tables = ({
   loading,
   onAddRow,
   onEditRow,
-  onDeleteRow
+  onDeleteRow,
+  customAction,
 }) => {
   return (
     <Card>
@@ -114,33 +115,67 @@ export const Tables = ({
                       </td>
                     ))}
                     {actions.length ? (
-                      <td className="inline-flex border-b border-blue-gray-50 py-2 px-5" style={{width: '100%'}}>
+                      <td
+                        className="inline-flex border-b border-blue-gray-50 py-2 px-5"
+                        style={{ width: "100%" }}
+                      >
+                        {actions.includes("custom") && (
+                          <IconButton
+                            title={customAction.title}
+                            variant="outlined"
+                            size="sm"
+                            className="m-1"
+                            color={customAction.color ?? "blue"}
+                            onClick={() => customAction.action(row)}
+                          >
+                            <i className={customAction.icon ?? "fas fa-plus"} />
+                          </IconButton>
+                        )}
                         {actions.includes("edit") && (
-                          <IconButton variant="outlined" size="sm" className="m-1" onClick={() => onEditRow(row)}>
-                          <i className="fas fa-pen" />
-                        </IconButton>
+                          <IconButton
+                            title="Edit"
+                            variant="outlined"
+                            size="sm"
+                            className="m-1"
+                            onClick={() => onEditRow(row)}
+                          >
+                            <i className="fas fa-pen" />
+                          </IconButton>
                         )}
                         {actions.includes("delete") && (
-                          <Popover placement="left-start" dismiss={{enabled: true, escapeKey: true}}>
-                          <PopoverHandler>
-                            <IconButton variant="outlined" size="sm" className="m-1" color="red">
-                            <i className="fas fa-trash" />
-                          </IconButton>
-                          </PopoverHandler>
-                          <PopoverContent className="w-60">
-                            <Typography
-                              variant="h6"
-                              color="blue-gray"
-                              className="mb-3"
-                            >
-                              Are you sure?
-                            </Typography>
-                            <div className="flex justify-end gap-2">
-                              <Button variant="text" size="sm" onClick={() => onDeleteRow(row)} >{`Yes, delete this item`}</Button>
-                              {/* <Button variant="text" size="sm" onClick={(e) => console.log(e)}>Cancel</Button> */}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
+                          <Popover
+                            placement="left-start"
+                            dismiss={{ enabled: true, escapeKey: true }}
+                          >
+                            <PopoverHandler>
+                              <IconButton
+                                title="Delete"
+                                variant="outlined"
+                                size="sm"
+                                className="m-1"
+                                color="red"
+                              >
+                                <i className="fas fa-trash" />
+                              </IconButton>
+                            </PopoverHandler>
+                            <PopoverContent className="w-60">
+                              <Typography
+                                variant="h6"
+                                color="blue-gray"
+                                className="mb-3"
+                              >
+                                Are you sure?
+                              </Typography>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="text"
+                                  size="sm"
+                                  onClick={() => onDeleteRow(row)}
+                                >{`Yes, delete this item`}</Button>
+                                {/* <Button variant="text" size="sm" onClick={(e) => console.log(e)}>Cancel</Button> */}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         )}
                       </td>
                     ) : (
@@ -186,7 +221,8 @@ Tables.prototype = {
     loading: PropTypes.bool,
     onAddRow: PropTypes.func,
     onEditRow: PropTypes.func,
-    onDeleteRow: PropTypes.func
+    onDeleteRow: PropTypes.func,
+    customAction: PropTypes.object,
 }
 
 export default Tables;

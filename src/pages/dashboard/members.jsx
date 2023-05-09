@@ -14,6 +14,7 @@ import { Tables } from "@/widgets/tables";
 import { Loader } from "@/widgets/spinners";
 import { Alert } from "@/widgets/alerts";
 import { extractErrorMessages } from "@/utils";
+import { Datepicker } from "@/widgets/datepicker";
 export const Members = () => {
   // TODO: make add modal responsive, renewal, keep form dialog open on alert dialog click or any click
   const apiUrl = appConfig.baseApiUrl + "members";
@@ -29,7 +30,7 @@ export const Members = () => {
   const [mobile, setMobile] = useState("");
   const [address, setAddress] = useState("");
   const [registrationExpiry, setRegistrationExpiry] = useState("");
-  const [addMemberLoading, setAddMemberLoading] = useState(false);
+  const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const handleOpen = (mode) => {
     setOpen((state) => !state);
@@ -39,6 +40,8 @@ export const Members = () => {
   const [alertMessage, setAlertMessage] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
   const handleAlert = () => setOpenAlert((state) => !state);
+  const [openExtention, setOpenExtention] = useState(false);
+  const handleOpenExtention = () => setOpenExtention((state) => !state);
 
   const tableColumns = [
     { type: "text", name: "fullName", label: "Full Name" },
@@ -46,6 +49,7 @@ export const Members = () => {
     { type: "text", name: "mobile", label: "Mobile No." },
     { type: "text", name: "address", label: "Address" },
     { type: "date", name: "registeredAt", label: "Registered At" },
+    { type: "date", name: "registrationExpiry", label: "Registration Expiry" }
   ];
 
   const headeroptions = {
@@ -61,7 +65,7 @@ export const Members = () => {
   }, [page, refreshList]); //eslint-disable-line react-hooks/exhaustive-deps
 
   const addMember = async (member) => {
-    setAddMemberLoading(true);
+    setSubmitButtonLoading(true);
     await fetch(apiUrl, {
       method: "POST",
       headers: headeroptions,
@@ -79,22 +83,24 @@ export const Members = () => {
         }
       })
       .then((responseResult) => {
-        setAddMemberLoading(false);
-        const newMembersList = [
-          ...members,
-          {
-            ...responseResult.result,
-          },
-        ];
-        const newCount = count + 1;
-        setCount(newCount);
-        if (newMembersList.length <= pageSize) {
-          setMembers(newMembersList);
-        } else {
-          setPage(Math.ceil(newCount / pageSize));
+        setSubmitButtonLoading(false);
+        if (responseResult) {
+          const newMembersList = [
+            ...members,
+            {
+              ...responseResult.result,
+            },
+          ];
+          const newCount = count + 1;
+          setCount(newCount);
+          if (newMembersList.length <= pageSize) {
+            setMembers(newMembersList);
+          } else {
+            setPage(Math.ceil(newCount / pageSize));
+          }
+          setOpen(false);
+          clearForm();
         }
-        setOpen(false);
-        clearForm();
       });
   };
 
@@ -153,21 +159,18 @@ export const Members = () => {
       nationalCode,
       mobile,
       address,
-      registrationExpiry: "2023-12-15T00:00:00.000Z",
+      registrationExpiry: `${new Date().getFullYear()}-12-30T00:00:00.000Z`,
     };
     addMember(member);
   };
 
   const onEditMember = (row) => {
-    setFullName(row.fullName);
-    setNationalCode(row.nationalCode);
-    setMobile(row.mobile);
-    setAddress(row.address);
+    setMemberInfo(row);
     handleOpen("EDIT");
   };
 
   const updateMember = async () => {
-    setAddMemberLoading(true);
+    setSubmitButtonLoading(true);
     const memberData = { fullName, mobile, address };
     const response = await fetch(`${apiUrl}/${nationalCode}`, {
       method: "PATCH",
@@ -184,23 +187,69 @@ export const Members = () => {
         members[index] = member;
         setMembers(members);
       }
-      setAddMemberLoading(false);
+      setSubmitButtonLoading(false);
       setOpen(false);
       setError(false);
       clearForm();
     } else {
-      setAddMemberLoading(false);
+      setSubmitButtonLoading(false);
       setError(true);
       setAlertMessage(extractErrorMessages(result.message));
       setOpenAlert(true);
     }
   };
 
+  const onRenewal = (row) => {
+    setMemberInfo(row);
+    handleOpenExtention();
+  }
+
+  const extendSubscription = async () => {
+    setSubmitButtonLoading(true);
+    const bodyData = {
+      expiryDate: new Date(registrationExpiry).toISOString()
+    }
+    const response = await fetch(`${apiUrl}/${nationalCode}/subscription-renewal`, {
+      method: "PATCH",
+      headers: headeroptions,
+      body: JSON.stringify(bodyData) 
+    });
+    const result = await response.json();
+    if (response.ok) {
+      const member = result.result;
+      const index = members.findIndex(
+        (item) => item.nationalCode === member.nationalCode
+      );
+      if (index > -1) {
+        members[index] = member;
+        setMembers(members);
+      }
+      setSubmitButtonLoading(false);
+      setOpenExtention(false);
+      setError(false);
+      clearForm();
+    } else {
+      setSubmitButtonLoading(false);
+      setError(true);
+      setAlertMessage(extractErrorMessages(result.message));
+      setOpenAlert(true);
+    }
+  }
+
+  const setMemberInfo = (member) => {
+    setFullName(member.fullName);
+    setNationalCode(member.nationalCode);
+    setMobile(member.mobile);
+    setAddress(member.address);
+    setRegistrationExpiry(member.registrationExpiry);
+  }
+
   const clearForm = () => {
     setFullName("");
     setNationalCode("");
     setMobile("");
     setAddress("");
+    setRegistrationExpiry("");
   };
 
   const onPageChange = (page) => {
@@ -213,7 +262,7 @@ export const Members = () => {
         title="Members"
         data={members}
         columns={tableColumns}
-        actions={["edit", "delete"]}
+        actions={["edit", "delete", "custom"]}
         hasPaging={true}
         count={count}
         onPageChange={onPageChange}
@@ -223,6 +272,12 @@ export const Members = () => {
         onAddRow={onAddMember}
         onEditRow={onEditMember}
         onDeleteRow={onDeleteMember}
+        customAction={{
+          action: onRenewal,
+          icon: "fas fa-repeat",
+          color: "green",
+          title: "Extend Subscription",
+        }}
       />
       <Dialog
         size="md"
@@ -275,14 +330,55 @@ export const Members = () => {
               disabled={!fullName || !nationalCode || !mobile || !address}
               fullWidth
             >
-              {addMemberLoading && <Loader />}
-              {addMemberLoading ? (
+              {submitButtonLoading && <Loader />}
+              {submitButtonLoading ? (
                 <></>
               ) : dialogMode === "ADD" ? (
                 "Add Member"
               ) : (
                 "Update Member"
               )}
+            </Button>
+            <Button variant="outlined" className="mt-2" onClick={() => handleOpen(dialogMode)} fullWidth>
+              Cancel
+            </Button>
+          </CardFooter>
+        </Card>
+      </Dialog>
+      <Dialog
+        size="md"
+        open={openExtention}
+        handler={handleOpenExtention}
+        className="bg-transparent shadow-none"
+      >
+        <Card className="mx-auto w-full max-w-[24rem]">
+          <CardHeader
+            variant="gradient"
+            color="cyan"
+            className="mb-4 grid h-28 place-items-center"
+          >
+            <Typography variant="h4" color="white">
+              Extend Subscription
+            </Typography>
+          </CardHeader>
+          <CardBody className="flex flex-col gap-4 px-6 py-2" style={{ height: "380px" }}>
+           <Typography variant="h6">{fullName} - {nationalCode}</Typography>
+            <Datepicker
+              onDateChange={setRegistrationExpiry}
+              value={registrationExpiry}
+              isOpen={true}
+              cssClass="w-full full-width-datepicker"
+            />
+          </CardBody>
+          <CardFooter className="pt-0">
+            <Button variant="gradient" onClick={extendSubscription} fullWidth>
+              {submitButtonLoading && <Loader />}
+              {submitButtonLoading ? (
+                <></>
+              ) : "Submit"}
+            </Button>
+            <Button variant="outlined" className="mt-2" onClick={handleOpenExtention} fullWidth>
+              Cancel
             </Button>
           </CardFooter>
         </Card>

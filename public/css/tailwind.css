@@ -1,3 +1,23 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.full-width-datepicker > span > .react-date-picker__calendar {
+    width: 100%;
+}
+
+.react-date-picker__wrapper {
+    padding: 5px 10px;
+    border: thin solid rgb(176, 197, 188) !important;
+    border-radius: 5px;
+}
+
+.react-calendar {
+    border-radius: 5px;
+    border-color: #d2d2c6 !important;
+}
+
+.react-calendar__tile--active {
+    color: #414141;
+    font-weight: 600;
+}
