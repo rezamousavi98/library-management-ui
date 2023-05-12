@@ -16,7 +16,6 @@ import { Alert } from "@/widgets/alerts";
 import { extractErrorMessages } from "@/utils";
 import { Datepicker } from "@/widgets/datepicker";
 export const Members = () => {
-  // TODO: make add modal responsive, renewal, keep form dialog open on alert dialog click or any click
   const apiUrl = appConfig.baseApiUrl + "members";
   const pageSize = 5;
   const [members, setMembers] = useState([]);
@@ -383,7 +382,7 @@ export const Members = () => {
           </CardFooter>
         </Card>
       </Dialog>
-      {openAlert && (
+      {openAlert && error && (
         <Alert
           title="Error"
           open={openAlert}
