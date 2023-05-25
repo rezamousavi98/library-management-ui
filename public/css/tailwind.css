@@ -21,3 +21,11 @@
     color: #414141;
     font-weight: 600;
 }
+
+.modal-buttons-align-end {
+    position: absolute;
+    bottom: 0;
+}
+.unset-overlay {
+    overflow: unset;
+}

@@ -245,7 +245,7 @@ export const Books = () => {
           size="sm"
           open={open}
           handler={handleOpen}
-          className="bg-transparent shadow-none"
+          className="bg-transparent shadow-none unset-overlay"
         >
           <Card className="mx-auto w-full max-w-[36rem]">
             <CardHeader

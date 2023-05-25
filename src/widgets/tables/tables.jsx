@@ -110,6 +110,10 @@ export const Tables = ({
                         >
                           {column.type === "date"
                             ? datePipe(row[column.name])
+                            : column.type === "object"
+                            ? row[column.name][column.objProp]
+                            : column.type === "enum"
+                            ? column.enumMap[row[column.name]]
                             : row[column.name]}
                         </Typography>
                       </td>

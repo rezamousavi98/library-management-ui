@@ -282,7 +282,7 @@ export const Members = () => {
         size="md"
         open={open}
         handler={handleOpen}
-        className="bg-transparent shadow-none"
+        className="bg-transparent shadow-none unset-overlay"
       >
         <Card className="mx-auto w-full max-w-[24rem]">
           <CardHeader
@@ -369,7 +369,7 @@ export const Members = () => {
               cssClass="w-full full-width-datepicker"
             />
           </CardBody>
-          <CardFooter className="pt-0">
+          <CardFooter className="pt-0 w-full modal-buttons-align-end">
             <Button variant="gradient" onClick={extendSubscription} fullWidth>
               {submitButtonLoading && <Loader />}
               {submitButtonLoading ? (
