@@ -34,9 +34,10 @@ export const Loans = () => {
     const [returnDate, setReturnDate] = useState("");
     const [membersList, setMembersList] = useState([]);
     const [booksList, setBooksList] = useState([]);
-    const [loanId, setLoanId] = useState(null);
+    const [loanId, setLoanId] = useState(-1);
     const [debt, setDebt] = useState(0);
     const [showDebt, setShowDebt] = useState(false);
+    const [isLoanClosed, setIsLoanClosed] = useState(false);
 
     const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
     const [open, setOpen] = useState(false);
@@ -108,7 +109,7 @@ export const Loans = () => {
       };
 
       const fetchBooks = async () => {
-        const response = await fetch(`${appConfig.baseApiUrl}books`);
+        const response = await fetch(`${appConfig.baseApiUrl}books?status=available`);
         const data = await response.json();
         if (response.ok) {
           return data.result.results;
@@ -146,6 +147,7 @@ export const Loans = () => {
       const onAddLoan = () => {
         setFormValues('clear');
         setShowDebt(false);
+        setIsLoanClosed(false);
         handleOpen("ADD");
       };
 
@@ -199,11 +201,39 @@ export const Loans = () => {
         setFormValues('EDIT', row);
         setLoanId(row.id);
         setShowDebt(false);
+        setIsLoanClosed(row.status === 0 ? true : false);
         handleOpen('EDIT');
       }
 
-      const updateLoan = () => {
-        console.log('update');
+      const updateLoan = async () => {
+        setSubmitButtonLoading(true);
+        const updateData = {
+          returnedDate: new Date().toISOString()
+        };
+
+        const response = await fetch(`${apiUrl}/${loanId}/close`, {
+          method: "PATCH",
+          headers: headeroptions,
+          body: JSON.stringify(updateData)
+        });
+        const result = await response.json();
+        if (response.ok) {
+          const loan = result.result;
+          const index = loans.findIndex(item => item.id === loan.id);
+          if (index > -1) {
+            loans[index] = loan;
+            setLoans(loans);
+          }
+          setSubmitButtonLoading(false);
+          setOpen(false);
+          setError(false);
+          clearForm();
+        } else {
+          setSubmitButtonLoading(false);
+          setError(true);
+          setAlertMessage(extractErrorMessages(result.message));
+          setOpenAlert(true);
+        }
       }
 
       const getDebt = async () => {
@@ -243,7 +273,7 @@ export const Loans = () => {
           title="Loans"
           data={loans}
           columns={tableColumns}
-          actions={['edit']}
+          actions={['custom']}
           hasPaging={true}
           count={count}
           onPageChange={onPageChange}
@@ -251,8 +281,13 @@ export const Loans = () => {
           currentPage={page}
           loading={isPending}
           onAddRow={onAddLoan}
-          onEditRow={onEditLoan}
-        //   onDeleteRow={deleteBook}
+          // onEditRow={onEditLoan}
+          customAction={{
+            action: onEditLoan,
+            icon: "fas fa-file-pen",
+            color: "blue",
+            title: "Loan details",
+          }}
         />
         <Dialog
           size="sm"
@@ -301,7 +336,7 @@ export const Loans = () => {
             {showDebt && <p className="text-red-500">debt: ${debt}</p>}
             </CardBody>
             <CardFooter className="pt-0">
-              {dialogMode === 'EDIT' && <Button
+              {(dialogMode === 'EDIT' && !isLoanClosed) && <Button
                 variant="outlined"
                 className="w-1/3 float-left mb-2"
                 onClick={getDebt}
@@ -309,13 +344,13 @@ export const Loans = () => {
               >
                 Get Debt
               </Button>}
-              <Button
+              {!isLoanClosed && <Button
                 variant="gradient"
                 onClick={dialogMode === "ADD" ? createLoan : updateLoan}
                 disabled={
                   !member ||
                   !books.length ||
-                  !returnDate
+                  !returnDate                  
                 }
                 className={dialogMode === "EDIT" ? "w-3/5 ml-2 mb-2 float-right" : "w-full"}
               >
@@ -327,14 +362,14 @@ export const Loans = () => {
                 ) : (
                   "Checkout"
                 )}
-              </Button>
+              </Button>}
               <Button
                 variant="outlined"
                 className="mt-2"
                 onClick={() => handleOpen(dialogMode)}
                 fullWidth
               >
-                Cancel
+                Close
               </Button>
             </CardFooter>
           </Card>
