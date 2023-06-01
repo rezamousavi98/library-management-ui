@@ -17,7 +17,7 @@ import { extractErrorMessages } from "@/utils";
 import { Datepicker } from "@/widgets/datepicker";
 export const Members = () => {
   const apiUrl = appConfig.baseApiUrl + "members";
-  const pageSize = 5;
+  const pageSize = 10;
   const [members, setMembers] = useState([]);
   const [isPending, setIsPending] = useState(true);
   const [error, setError] = useState(false);

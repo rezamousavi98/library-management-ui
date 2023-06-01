@@ -20,7 +20,7 @@ import Select from 'react-select';
 
 export const Loans = () => {
     const apiUrl = appConfig.baseApiUrl + "borrowing";
-    const pageSize = 5;
+    const pageSize = 10;
     const [loans, setLoans] = useState([]);
     const [loansList, setLoansList] = useState([]);
     const [isPending, setIsPending] = useState(true);

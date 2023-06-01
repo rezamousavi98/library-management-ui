@@ -9,7 +9,10 @@ import {
   Typography,
   Input,
   Select,
-  Option
+  Option,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
 } from "@material-tailwind/react";
 import { appConfig } from "@/configs";
 import { Tables } from "@/widgets/tables";
@@ -19,7 +22,8 @@ import { extractErrorMessages } from "@/utils";
 
 export const Books = () => {
     const apiUrl = appConfig.baseApiUrl + "books";
-    const pageSize = 5;
+    const loansApiUrl = appConfig.baseApiUrl + "borrowing";
+    const pageSize = 10;
     const [books, setBooks] = useState([]);
     const [isPending, setIsPending] = useState(true);
     const [error, setError] = useState(false);
@@ -39,6 +43,11 @@ export const Books = () => {
     const [bookCount, setBookCount] = useState("");
     const [translator, setTranslator] = useState("");
 
+    const [loansList, setLoansList] = useState([]);
+    const [loansListPending, setLoansListPending] = useState(false);
+    const [detailBook, setDetailBook] = useState(null);
+    const [detailBookAvailable, setDetailBookAvailable] = useState(false);
+
     const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const handleOpen = (mode) => {
@@ -49,6 +58,8 @@ export const Books = () => {
     const [alertMessage, setAlertMessage] = useState("");
     const [openAlert, setOpenAlert] = useState(false);
     const handleAlert = () => setOpenAlert((state) => !state);
+    const [openLoanDetails, setOpenLoanDetails] = useState(false);
+    const handleOpenLoanDetails = () => setOpenLoanDetails((state) => !state);
 
     const tableColumns = [
         { type: "text", name: "title", label: "title" },
@@ -58,6 +69,7 @@ export const Books = () => {
         { type: "text", name: "language", label: "language" },
         { type: "text", name: "publisher", label: "publisher" },
         { type: "date", name: "publicationDate", label: "publication Date" },
+        { type: "text", name: "isAvailable", label: "Is Available" },
       ];
     
       const headeroptions = {
@@ -66,7 +78,13 @@ export const Books = () => {
 
       useEffect(() => {
         const getBooks = async () => {
-          const booksFromApi = await fetchBooks();
+          let booksFromApi = await fetchBooks();
+          booksFromApi = booksFromApi.map((book) => {
+            return {
+              ...book,
+              isAvailable: book.count - book.onLoan > 0 ? 'Yes' : 'No'
+            }
+          })
           setBooks(booksFromApi);
         };
         getBooks();
@@ -91,6 +109,23 @@ export const Books = () => {
           return [];
         }
       };
+
+      const fetchLoans = async (bookId) => {
+        setLoansListPending(true);
+        const response = await fetch(`${loansApiUrl}/?status=open&bookId=${bookId}`);
+        const data = await response.json();
+        if (response.ok) {
+          setLoansListPending(false);
+          setError(false);
+          setLoansList(data.result.results);
+        } else {
+          setLoansListPending(false);
+          setError(true);
+          setAlertMessage(extractErrorMessages(data.message));
+          setOpenAlert(true);
+          return [];
+        }
+      }
 
       const getFormObject = () => {
         return {
@@ -188,6 +223,14 @@ export const Books = () => {
         }
       };
 
+      const onLoanDetails = (row) => {
+        setLoansList([]);
+        setDetailBook(row);
+        setDetailBookAvailable(row.count - row.onLoan > 0 ? true : false);
+        handleOpenLoanDetails();
+        fetchLoans(row.id);
+      }
+
       const deleteBook = async (row) => {
         await fetch(`${apiUrl}/${row.id}`, {
           method: "DELETE",
@@ -230,7 +273,7 @@ export const Books = () => {
           title="Books"
           data={books}
           columns={tableColumns}
-          actions={["edit", "delete"]}
+          actions={["edit", "delete", "custom"]}
           hasPaging={true}
           count={count}
           onPageChange={onPageChange}
@@ -240,12 +283,18 @@ export const Books = () => {
           onAddRow={onAddBook}
           onEditRow={onEditBook}
           onDeleteRow={deleteBook}
+          customAction={{
+            action: onLoanDetails,
+            icon: "fas fa-arrow-right-arrow-left",
+            color: "green",
+            title: "Loan Details",
+          }}
         />
         <Dialog
           size="sm"
           open={open}
           handler={handleOpen}
-          className="bg-transparent shadow-none unset-overlay"
+          className="unset-overlay bg-transparent shadow-none"
         >
           <Card className="mx-auto w-full max-w-[36rem]">
             <CardHeader
@@ -284,18 +333,42 @@ export const Books = () => {
                 value={subject}
                 onChange={(e) => setSubject(e)}
               >
-                <Option key="novel" value="novel">Novel</Option>
-                <Option key="educational" value="educational">Educational</Option>
-                <Option key="psychology" value="psychology">Psychology</Option>
-                <Option key="philosophical" value="philosophical">Philosophical</Option>
-                <Option key="historical" value="historical">Historical</Option>
-                <Option key="religious" value="religious">Religious</Option>
-                <Option key="fiction" value="fiction">Fiction</Option>
-                <Option key="comic" value="comic">Comic</Option>
-                <Option key="art" value="art">Art</Option>
-                <Option key="science_fiction" value="science_fiction">Science fiction</Option>
-                <Option key="children" value="children">Children</Option>
-                <Option key="humer" value="humer">Humer</Option>
+                <Option key="novel" value="novel">
+                  Novel
+                </Option>
+                <Option key="educational" value="educational">
+                  Educational
+                </Option>
+                <Option key="psychology" value="psychology">
+                  Psychology
+                </Option>
+                <Option key="philosophical" value="philosophical">
+                  Philosophical
+                </Option>
+                <Option key="historical" value="historical">
+                  Historical
+                </Option>
+                <Option key="religious" value="religious">
+                  Religious
+                </Option>
+                <Option key="fiction" value="fiction">
+                  Fiction
+                </Option>
+                <Option key="comic" value="comic">
+                  Comic
+                </Option>
+                <Option key="art" value="art">
+                  Art
+                </Option>
+                <Option key="science_fiction" value="science_fiction">
+                  Science fiction
+                </Option>
+                <Option key="children" value="children">
+                  Children
+                </Option>
+                <Option key="humer" value="humer">
+                  Humer
+                </Option>
               </Select>
               <Input
                 label="Publisher"
@@ -304,34 +377,34 @@ export const Books = () => {
                 value={publisher}
               />
               <div className="flex items-center gap-4">
-              <Input
-                label="Publication Year"
-                size="lg"
-                onChange={(e) => setPublicationDate(e.target.value)}
-                value={publicationDate}
-              />
-              <Input
-                label="Language"
-                size="lg"
-                onChange={(e) => setLanguage(e.target.value)}
-                value={language}
-              />
+                <Input
+                  label="Publication Year"
+                  size="lg"
+                  onChange={(e) => setPublicationDate(e.target.value)}
+                  value={publicationDate}
+                />
+                <Input
+                  label="Language"
+                  size="lg"
+                  onChange={(e) => setLanguage(e.target.value)}
+                  value={language}
+                />
               </div>
               <div className="flex items-center gap-4">
-              <Input
-                label="Pages count"
-                size="lg"
-                type="number"
-                onChange={(e) => setPagesCount(e.target.value)}
-                value={pagesCount}
-              />
-              <Input
-                label="Count"
-                size="lg"
-                type="number"
-                onChange={(e) => setBookCount(e.target.value)}
-                value={bookCount}
-              />
+                <Input
+                  label="Pages count"
+                  size="lg"
+                  type="number"
+                  onChange={(e) => setPagesCount(e.target.value)}
+                  value={pagesCount}
+                />
+                <Input
+                  label="Count"
+                  size="lg"
+                  type="number"
+                  onChange={(e) => setBookCount(e.target.value)}
+                  value={bookCount}
+                />
               </div>
               <Input
                 label="Translator"
@@ -377,16 +450,63 @@ export const Books = () => {
             </CardFooter>
           </Card>
         </Dialog>
+        {!loansListPending && detailBook && (
+          <Dialog
+            open={openLoanDetails}
+            size={"xs"}
+            handler={handleOpenLoanDetails}
+          >
+            <DialogHeader>
+              <span
+                className="mr-2 block h-2 w-2 rounded-full content-['']"
+                style={{
+                  backgroundColor: detailBookAvailable
+                    ? "rgb(76, 175, 80)"
+                    : "rgb(244, 67, 54)",
+                }}
+              />
+              {detailBook.title}
+            </DialogHeader>
+            <DialogBody style={{display: "block", padding: "0.5rem 1.25rem"}}>
+              {loansList.length ? (
+                <>
+                  <Typography variant="lead">Loaned To:</Typography>
+                  {loansList.map((loan) => (
+                    <Typography variant="paragraph" className="mt-1">
+                      {loan.member.fullName} - {loan.member.nationalCode}
+                    </Typography>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <Typography variant="paragraph">
+                    Book is not on loan
+                  </Typography>
+                </>
+              )}
+            </DialogBody>
+            <DialogFooter>
+              <Button
+                variant="text"
+                color="blue"
+                onClick={() => handleOpenLoanDetails(null)}
+                className="mr-1"
+              >
+                <span>Close</span>
+              </Button>
+            </DialogFooter>
+          </Dialog>
+        )}
         {openAlert && error && (
-        <Alert
-          title="Error"
-          open={openAlert}
-          handler={handleAlert}
-          size="sm"
-          headerColor="red"
-          message={alertMessage}
-        />
-      )}
+          <Alert
+            title="Error"
+            open={openAlert}
+            handler={handleAlert}
+            size="sm"
+            headerColor="red"
+            message={alertMessage}
+          />
+        )}
       </div>
     );
 }
