@@ -1,14 +1,12 @@
 import {
   HomeIcon,
-  UserCircleIcon,
-  TableCellsIcon,
-  BellIcon,
   ArrowRightOnRectangleIcon,
   UserPlusIcon,
   UserGroupIcon,
-  BookOpenIcon
+  BookOpenIcon,
+  ArrowsRightLeftIcon
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications, Books, Members } from "@/pages/dashboard";
+import { Home, Books, Members, Loans } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 const icon = {
@@ -26,22 +24,10 @@ export const routes = [
         element: <Home />,
       },
       {
-        icon: <UserCircleIcon {...icon} />,
-        name: "profile",
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        icon: <TableCellsIcon {...icon} />,
-        name: "tables",
-        path: "/tables",
-        element: <Tables />,
-      },
-      {
-        icon: <BellIcon {...icon} />,
-        name: "notifactions",
-        path: "/notifactions",
-        element: <Notifications />,
+        icon: <ArrowsRightLeftIcon {...icon} />,
+        name: "loans",
+        path: "/loans",
+        element: <Loans />,
       },
       {
         icon: <BookOpenIcon {...icon} />,
