@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Chip
 } from "@material-tailwind/react";
 import { appConfig } from "@/configs";
 import { Tables } from "@/widgets/tables";
@@ -457,17 +458,31 @@ export const Books = () => {
             handler={handleOpenLoanDetails}
           >
             <DialogHeader>
-              <span
+              {/* <span
                 className="mr-2 block h-2 w-2 rounded-full content-['']"
                 style={{
                   backgroundColor: detailBookAvailable
                     ? "rgb(76, 175, 80)"
                     : "rgb(244, 67, 54)",
                 }}
-              />
+              /> */}
               {detailBook.title}
             </DialogHeader>
-            <DialogBody style={{display: "block", padding: "0.5rem 1.25rem"}}>
+            <DialogBody style={{ display: "block", padding: "0.5rem 1.25rem" }}>
+              <Chip
+                variant="ghost"
+                color={detailBookAvailable ? "green" : "red"}
+                size="sm"
+                value={detailBookAvailable ? "Available" : "On Loan"}
+                className="mb-2"
+                icon={
+                  <span className="mx-auto mt-1 block h-2 w-2 rounded-full content-['']" style={{
+                    backgroundColor: detailBookAvailable
+                      ? "rgb(76, 175, 80)"
+                      : "rgb(244, 67, 54)",
+                  }} />
+                }
+              />
               {loansList.length ? (
                 <>
                   <Typography variant="lead">Loaned To:</Typography>
